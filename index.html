@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JournalPilot AI — Daily Journal with Prompts</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">JournalPilot <span class="ai">AI</span></div>
+  <div class="tagline">A private daily journal with a fresh prompt every day.</div>
+</header>
+
+<div class="streakbar" id="streakLine"></div>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="today">Today</button>
+  <button class="tab" data-tab="entries">Entries</button>
+  <button class="tab" data-tab="insights">Insights</button>
+</nav>
+
+<main>
+  <!-- TODAY -->
+  <section class="pane active" id="pane-today">
+    <div class="daynav">
+      <button id="prevDay" title="Previous day">←</button>
+      <button id="todayBtn">Today</button>
+      <button id="nextDay" title="Next day">→</button>
+      <input type="date" id="entryDate" aria-label="Entry date">
+    </div>
+
+    <h2 id="todayTitle">Today's entry</h2>
+
+    <div class="prompt card">
+      <div class="prompt-head">
+        <span class="pill" id="promptCat">Gratitude</span>
+        <span>
+          <button class="linkbtn" id="shuffleBtn">Shuffle</button>
+          <button class="linkbtn" id="newPromptBtn">↺ Reset to daily</button>
+        </span>
+      </div>
+      <p class="prompt-text" id="promptText"></p>
+    </div>
+
+    <label class="lbl">How are you feeling?</label>
+    <div class="moodrow" id="moodRow">
+      <button class="mood" data-mood="great">😄<span>Great</span></button>
+      <button class="mood" data-mood="good">🙂<span>Good</span></button>
+      <button class="mood sel" data-mood="okay">😐<span>Okay</span></button>
+      <button class="mood" data-mood="low">😟<span>Low</span></button>
+      <button class="mood" data-mood="rough">😞<span>Rough</span></button>
+    </div>
+
+    <label class="lbl" for="entryText">Your entry <span class="muted" id="wordCount">0 words</span></label>
+    <textarea id="entryText" rows="12" placeholder="Write freely — there is no wrong way to journal…"></textarea>
+
+    <div class="actions">
+      <button class="primary" id="saveBtn">Save entry</button>
+      <button class="danger" id="deleteBtn" style="display:none">Delete entry</button>
+      <span class="muted" id="saveNote"></span>
+    </div>
+  </section>
+
+  <!-- ENTRIES -->
+  <section class="pane" id="pane-entries">
+    <h2>Past entries</h2>
+    <input type="search" id="searchBox" placeholder="Search entries and prompts…">
+    <div id="entryList"></div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section class="pane" id="pane-insights">
+    <h2>Insights</h2>
+    <div class="stats" id="insightStats"></div>
+    <h3>Mood over time</h3>
+    <div id="moodBars"></div>
+    <p class="muted small">Private by design: every entry is stored only in this browser's localStorage. Nothing is uploaded, synced, or sent anywhere.</p>
+  </section>
+</main>
+
+<footer>
+  <p>100% local — your journal never leaves this browser. · JournalPilot AI</p>
+</footer>
+
+<script src="js/prompts.js"></script>
+<script src="js/logic.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
