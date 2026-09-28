@@ -4,29 +4,34 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JournalPilot AI — Daily Journal with Prompts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">JournalPilot <span class="ai">AI</span></div>
-  <div class="tagline">A private daily journal with a fresh prompt every day.</div>
+  <div class="wrap topbar-inner">
+    <div class="brand"><span class="brand-seal">J</span><span class="brand-word">JournalPilot <em>AI</em></span></div>
+    <p class="tagline">A private daily journal with a fresh prompt every day.</p>
+  </div>
 </header>
 
-<div class="streakbar" id="streakLine"></div>
+<div class="streakwrap"><div class="streakbar" id="streakLine"></div></div>
 
-<nav class="tabs">
+<nav class="tabs wrap" aria-label="Journal sections">
   <button class="tab active" data-tab="today">Today</button>
   <button class="tab" data-tab="entries">Entries</button>
   <button class="tab" data-tab="insights">Insights</button>
 </nav>
 
-<main>
+<main class="wrap">
   <!-- TODAY -->
   <section class="pane active" id="pane-today">
     <div class="daynav">
-      <button id="prevDay" title="Previous day">←</button>
+      <button id="prevDay" title="Previous day" aria-label="Previous day">←</button>
       <button id="todayBtn">Today</button>
-      <button id="nextDay" title="Next day">→</button>
+      <button id="nextDay" title="Next day" aria-label="Next day">→</button>
       <input type="date" id="entryDate" aria-label="Entry date">
     </div>
 
@@ -37,7 +42,7 @@
         <span class="pill" id="promptCat">Gratitude</span>
         <span>
           <button class="linkbtn" id="shuffleBtn">Shuffle</button>
-          <button class="linkbtn" id="newPromptBtn">↺ Reset to daily</button>
+          <button class="linkbtn" id="newPromptBtn">Reset to daily</button>
         </span>
       </div>
       <p class="prompt-text" id="promptText"></p>
@@ -45,11 +50,11 @@
 
     <label class="lbl">How are you feeling?</label>
     <div class="moodrow" id="moodRow">
-      <button class="mood" data-mood="great">😄<span>Great</span></button>
-      <button class="mood" data-mood="good">🙂<span>Good</span></button>
-      <button class="mood sel" data-mood="okay">😐<span>Okay</span></button>
-      <button class="mood" data-mood="low">😟<span>Low</span></button>
-      <button class="mood" data-mood="rough">😞<span>Rough</span></button>
+      <button class="mood" data-mood="great"><span class="mdot" style="background:#2f7d4f"></span><span>Great</span></button>
+      <button class="mood" data-mood="good"><span class="mdot" style="background:#65a30d"></span><span>Good</span></button>
+      <button class="mood sel" data-mood="okay"><span class="mdot" style="background:#d9a441"></span><span>Okay</span></button>
+      <button class="mood" data-mood="low"><span class="mdot" style="background:#c2703d"></span><span>Low</span></button>
+      <button class="mood" data-mood="rough"><span class="mdot" style="background:#b91c1c"></span><span>Rough</span></button>
     </div>
 
     <label class="lbl" for="entryText">Your entry <span class="muted" id="wordCount">0 words</span></label>
@@ -79,7 +84,7 @@
   </section>
 </main>
 
-<footer>
+<footer class="wrap">
   <p>100% local — your journal never leaves this browser. · JournalPilot AI</p>
 </footer>
 

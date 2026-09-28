@@ -10,6 +10,7 @@ const P = (typeof require !== "undefined")
 const MOODS = ["great", "good", "okay", "low", "rough"];
 const MOOD_LABELS = { great: "Great", good: "Good", okay: "Okay", low: "Low", rough: "Rough" };
 const MOOD_EMOJI = { great: "😄", good: "🙂", okay: "😐", low: "😟", rough: "😞" };
+const MOOD_COLORS = { great: "#2f7d4f", good: "#65a30d", okay: "#d9a441", low: "#c2703d", rough: "#b91c1c" };
 const STORE_KEY = "journalpilot:v1";
 
 // ---- storage (localStorage in browser, in-memory fallback for node/tests) ----
@@ -162,7 +163,7 @@ function totalWords(entries) {
 }
 
 const api = {
-  MOODS: MOODS, MOOD_LABELS: MOOD_LABELS, MOOD_EMOJI: MOOD_EMOJI,
+  MOODS: MOODS, MOOD_LABELS: MOOD_LABELS, MOOD_EMOJI: MOOD_EMOJI, MOOD_COLORS: MOOD_COLORS,
   loadEntries: loadEntries, persistEntries: persistEntries,
   todayISO: todayISO, addDaysISO: addDaysISO,
   promptForDate: promptForDate,

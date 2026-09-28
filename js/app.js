@@ -104,7 +104,7 @@ function saveToday() {
     refresh();
     el("saveNote").textContent = "Saved ✓ " + new Date().toLocaleTimeString() + ".";
   } catch (err) {
-    el("saveNote").textContent = "⚠ " + err.message;
+    el("saveNote").textContent = "Couldn't save: " + err.message;
   }
 }
 
@@ -119,7 +119,7 @@ function renderEntries() {
   box.innerHTML = list.map(function (e) {
     return '<div class="card entry-card" data-date="' + e.date + '">' +
       '<div class="entry-head"><strong>' + e.date + "</strong>" +
-      '<span class="moodtag">' + JP.MOOD_EMOJI[e.mood] + " " + JP.MOOD_LABELS[e.mood] + "</span>" +
+      '<span class="moodtag"><span class="mdot" style="background:' + JP.MOOD_COLORS[e.mood] + '"></span> ' + JP.MOOD_LABELS[e.mood] + "</span>" +
       '<span class="pill">' + esc(PR.CATEGORY_LABELS[e.prompt.category] || e.prompt.category) + "</span></div>" +
       '<div class="entry-prompt">' + esc(e.prompt.text) + "</div>" +
       '<div class="entry-text">' + esc(e.text.length > 220 ? e.text.slice(0, 220) + "…" : e.text) + "</div>" +
@@ -135,8 +135,8 @@ function renderInsights() {
   const max = Math.max.apply(null, JP.MOODS.map(function (m) { return counts[m]; }).concat([1]));
   el("moodBars").innerHTML = JP.MOODS.map(function (m) {
     const w = Math.round((counts[m] / max) * 100);
-    return '<div class="mrow"><span class="mlabel">' + JP.MOOD_EMOJI[m] + " " + JP.MOOD_LABELS[m] +
-      '</span><div class="mbar"><div class="mfill" style="width:' + w + '%"></div></div>' +
+    return '<div class="mrow"><span class="mlabel"><span class="mdot" style="background:' + JP.MOOD_COLORS[m] + '"></span> ' + JP.MOOD_LABELS[m] +
+      '</span><div class="mbar"><div class="mfill" style="width:' + w + '%;background:' + JP.MOOD_COLORS[m] + '"></div></div>' +
       '<span class="mcount">' + counts[m] + "</span></div>";
   }).join("");
   el("insightStats").innerHTML =
