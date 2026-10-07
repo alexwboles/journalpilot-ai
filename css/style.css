@@ -15,8 +15,8 @@
   --muted: #9a8d78;
   --line: #e7dcc4;
   --line-soft: #f0e8d5;
-  --radius: 14px;
-  --radius-sm: 9px;
+  --radius: 0;
+  --radius-sm: 0;
   --shadow: 0 1px 2px rgba(80, 55, 20, .06), 0 12px 30px rgba(80, 55, 20, .07);
   --shadow-sm: 0 1px 2px rgba(80, 55, 20, .08);
   --serif: "Fraunces", Georgia, "Times New Roman", serif;
@@ -51,7 +51,7 @@ h3 { font-family: var(--serif); font-size: 20px; font-weight: 600; margin: 28px 
 .brand-word { font-family: var(--serif); font-size: 24px; font-weight: 700; letter-spacing: -.3px; }
 .brand-word em {
   font-style: normal; font-family: var(--sans); font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px;
-  color: var(--terra-deep); background: var(--terra-soft); border-radius: 6px; padding: 3px 8px; margin-left: 4px;
+  color: var(--terra-deep); background: var(--terra-soft); border-radius: 0; padding: 3px 8px; margin-left: 4px;
   vertical-align: 3px;
 }
 .tagline { margin: 0; color: var(--muted); font-size: 14px; font-style: italic; font-family: var(--serif); font-size: 16px; }
@@ -68,7 +68,7 @@ h3 { font-family: var(--serif); font-size: 20px; font-weight: 600; margin: 28px 
 .tabs { display: flex; gap: 8px; padding-top: 18px; padding-bottom: 4px; }
 .tab {
   border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
-  border-radius: 999px; padding: 9px 22px; font-size: 14px; font-weight: 600;
+  border-radius: 0; padding: 9px 22px; font-size: 14px; font-weight: 600;
   transition: all .15s;
 }
 .tab:hover { border-color: var(--terra); color: var(--terra-deep); }
@@ -88,14 +88,14 @@ main.wrap { padding-top: 22px; padding-bottom: 64px; }
   display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
 }
 .daynav button {
-  border: 1px solid var(--line); background: var(--card); border-radius: 999px;
+  border: 1px solid var(--line); background: var(--card); border-radius: 0;
   min-width: 42px; height: 42px; padding: 0 14px; font-size: 15px; font-weight: 600; color: var(--ink-soft);
   display: inline-flex; align-items: center; justify-content: center;
 }
 .daynav button:hover { border-color: var(--terra); color: var(--terra-deep); }
 #todayBtn { padding: 0 22px; }
 .daynav input[type="date"] {
-  border: 1px solid var(--line); border-radius: 999px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 0; background: var(--card);
   padding: 9px 16px; font-family: var(--sans); font-size: 14px; color: var(--ink-soft); width: auto;
 }
 .daynav input[type="date"]:focus { border-color: var(--terra); outline: none; box-shadow: 0 0 0 3px var(--terra-ring); }
@@ -105,7 +105,7 @@ main.wrap { padding-top: 22px; padding-bottom: 64px; }
 .prompt-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 .pill {
   font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.4px;
-  color: var(--terra-deep); background: var(--terra-soft); border-radius: 999px; padding: 5px 14px;
+  color: var(--terra-deep); background: var(--terra-soft); border-radius: 0; padding: 5px 14px;
 }
 .linkbtn {
   background: none; border: none; color: var(--terra-deep); font-size: 13.5px; font-weight: 600;
@@ -123,7 +123,7 @@ main.wrap { padding-top: 22px; padding-bottom: 64px; }
 .moodrow { display: flex; gap: 8px; flex-wrap: wrap; }
 .mood {
   display: inline-flex; align-items: center; gap: 9px;
-  border: 1px solid var(--line); background: var(--card); border-radius: 999px;
+  border: 1px solid var(--line); background: var(--card); border-radius: 0;
   padding: 9px 18px 9px 12px; font-size: 14px; font-weight: 600; color: var(--ink-soft);
   transition: all .15s;
 }
@@ -160,7 +160,7 @@ main.wrap { padding-top: 22px; padding-bottom: 64px; }
 
 /* ---------- entries list ---------- */
 #searchBox {
-  width: 100%; border: 1px solid var(--line); border-radius: 999px; background: var(--card);
+  width: 100%; border: 1px solid var(--line); border-radius: 0; background: var(--card);
   padding: 12px 22px; font-size: 14.5px; margin-bottom: 18px; font-family: var(--sans); color: var(--ink);
 }
 #searchBox:focus { outline: none; border-color: var(--terra); box-shadow: 0 0 0 3px var(--terra-ring); }
@@ -182,8 +182,8 @@ main.wrap { padding-top: 22px; padding-bottom: 64px; }
 .stat span { font-size: 12.5px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .8px; }
 .mrow { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
 .mlabel { min-width: 110px; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
-.mbar { flex: 1; height: 12px; background: var(--paper-deep); border-radius: 999px; overflow: hidden; }
-.mfill { height: 100%; background: var(--terra); border-radius: 999px; transition: width .5s ease-out; }
+.mbar { flex: 1; height: 12px; background: var(--paper-deep); border-radius: 0; overflow: hidden; }
+.mfill { height: 100%; background: var(--terra); border-radius: 0; transition: width .5s ease-out; }
 .mcount { min-width: 30px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
 
 /* ---------- footer ---------- */
