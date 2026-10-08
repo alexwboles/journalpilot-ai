@@ -82,4 +82,65 @@ flow("entry stores its prompt", () => {
   if (!got.prompt || got.prompt.text !== expected.text) throw new Error("prompt not stored");
 });
 
+// 8: export a month of entries to markdown and verify structure
+flow("markdown export of a month", () => {
+  let e = [];
+  const days = ["2026-10-01", "2026-10-02", "2026-10-03"];
+  const texts = ["Started the garden #garden", "Rainy day, read #reading", "Harvested tomatoes #garden"];
+  days.forEach((d, i) => { e = JP.saveEntry(e, d, { text: texts[i], mood: ["good", "okay", "great"][i] }); });
+  const md = JP.entriesToMarkdown(e);
+  const lines = md.split("\n");
+  if (lines[0] !== "# Journal Export") throw new Error("title line");
+  if (!/3 entries/.test(lines[2])) throw new Error("count line: " + lines[2]);
+  const h1 = md.indexOf("## 2026-10-01"), h3 = md.indexOf("## 2026-10-03");
+  if (h1 === -1 || h3 === -1 || h1 > h3) throw new Error("sections oldest-first");
+  if (!md.includes("> ")) throw new Error("prompts should be blockquoted");
+  if (!md.includes("#garden")) throw new Error("tags preserved in export");
+});
+
+// 9: tag journey — write tagged entries, aggregate, filter
+flow("tag journey", () => {
+  let e = [];
+  e = JP.saveEntry(e, "2026-10-01", { text: "Gym #fitness #health" });
+  e = JP.saveEntry(e, "2026-10-02", { text: "Run #fitness" });
+  e = JP.saveEntry(e, "2026-10-03", { text: "Meditate #health" });
+  const tags = JP.entryTags(e);
+  if (tags.length !== 2) throw new Error("want 2 tags, got " + tags.length);
+  const fit = tags.find(t => t.tag === "fitness");
+  if (!fit || fit.count !== 2) throw new Error("fitness count");
+  const filtered = JP.entriesWithTag(e, "health");
+  if (filtered.length !== 2) throw new Error("health filter");
+  // tags survive a save/load round trip
+  JP.persistEntries(e);
+  const reloaded = JP.loadEntries();
+  if (JP.entryTags(reloaded).length !== 2) throw new Error("tags lost after reload");
+});
+
+// 10: word goal journey — write toward a goal, verify progress
+flow("word goal journey", () => {
+  let e = [];
+  const words = Array(120).fill("word").join(" ");
+  e = JP.saveEntry(e, "2026-10-08", { text: words, mood: "good" });
+  const gp = JP.goalProgress(JP.wordCount(JP.getEntry(e, "2026-10-08").text), 200);
+  if (gp.words !== 120 || gp.pct !== 60 || gp.met) throw new Error("progress " + JSON.stringify(gp));
+  const met = JP.goalProgress(200, 200);
+  if (!met.met || met.pct !== 100) throw new Error("met goal");
+});
+
+// 11: on-this-day + calendar over a multi-year journal
+flow("on this day across years", () => {
+  let e = [];
+  e = JP.saveEntry(e, "2024-10-08", { text: "first october entry", mood: "good" });
+  e = JP.saveEntry(e, "2025-10-08", { text: "second october entry", mood: "great" });
+  e = JP.saveEntry(e, "2026-10-07", { text: "yesterday", mood: "okay" });
+  const otd = JP.onThisDay(e, "2026-10-08");
+  if (otd.length !== 2 || otd[0].text !== "first october entry") throw new Error("on-this-day wrong");
+  const oct = JP.monthDays(e, 2026, 10);
+  const marked = oct.filter(d => d.hasEntry);
+  if (marked.length !== 1 || marked[0].date !== "2026-10-07") throw new Error("calendar marks wrong days");
+  const leap = JP.monthDays([], 2024, 2);
+  const feb29 = leap.find(d => d.date === "2024-02-29");
+  if (!feb29 || !feb29.inMonth) throw new Error("leap day missing from grid");
+});
+
 console.log("All " + flows + " e2e flows passed.");

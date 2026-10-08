@@ -58,6 +58,13 @@
     </div>
 
     <label class="lbl" for="entryText">Your entry <span class="muted" id="wordCount">0 words</span></label>
+    <div class="goalrow">
+      <span class="muted small">Daily goal</span>
+      <input type="number" id="wordGoal" min="1" step="10" aria-label="Daily word goal">
+      <span class="muted small">words</span>
+      <div class="goalbar"><div class="goalfill" id="goalFill"></div></div>
+      <span class="muted small" id="goalText"></span>
+    </div>
     <textarea id="entryText" rows="12" placeholder="Write freely — there is no wrong way to journal…"></textarea>
 
     <div class="actions">
@@ -65,12 +72,19 @@
       <button class="danger" id="deleteBtn" style="display:none">Delete entry</button>
       <span class="muted" id="saveNote"></span>
     </div>
+
+    <h3 class="otd-title">On this day — past years</h3>
+    <div id="onThisDay"></div>
   </section>
 
   <!-- ENTRIES -->
   <section class="pane" id="pane-entries">
     <h2>Past entries</h2>
-    <input type="search" id="searchBox" placeholder="Search entries and prompts…">
+    <div class="entries-tools">
+      <input type="search" id="searchBox" placeholder="Search entries and prompts…">
+      <button class="ghost" id="exportMd">Export Markdown</button>
+    </div>
+    <div id="tagChips" class="tagchips"></div>
     <div id="entryList"></div>
   </section>
 
@@ -80,6 +94,13 @@
     <div class="stats" id="insightStats"></div>
     <h3>Mood over time</h3>
     <div id="moodBars"></div>
+    <h3>Calendar</h3>
+    <div class="calnav">
+      <button class="ghost" id="calPrev" aria-label="Previous month">←</button>
+      <strong id="calTitle"></strong>
+      <button class="ghost" id="calNext" aria-label="Next month">→</button>
+    </div>
+    <div id="calGrid" class="calgrid"></div>
     <p class="muted small">Private by design: every entry is stored only in this browser's localStorage. Nothing is uploaded, synced, or sent anywhere.</p>
   </section>
 </main>

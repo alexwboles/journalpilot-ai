@@ -208,3 +208,50 @@ footer { text-align: center; padding: 28px 20px 34px; border-top: 1px solid var(
   .entry-head .pill { margin-left: 0; }
   .mlabel { min-width: 92px; }
 }
+
+/* ---------- word goal ---------- */
+.goalrow { display: flex; align-items: center; gap: 10px; margin: 8px 0 10px; flex-wrap: wrap; }
+#wordGoal { width: 84px; }
+.goalbar { flex: 1 1 160px; height: 8px; background: var(--paper-deep, #f0ebe0); }
+.goalfill { height: 100%; width: 0; background: var(--terra, #b3541e); transition: width .2s; }
+.goalfill.met { background: #2f7d4f; }
+
+/* ---------- on this day ---------- */
+.otd-title { margin: 30px 0 10px; }
+.otd-card { margin-bottom: 12px; }
+
+/* ---------- entries tools + tags ---------- */
+.entries-tools { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; }
+.entries-tools input { flex: 1; }
+.tagchips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+.taglbl { font-size: 13px; color: var(--muted); font-weight: 600; }
+.tagchip {
+  border: 1px solid var(--line); background: var(--card); border-radius: 0;
+  padding: 5px 12px; font-size: 13px; cursor: pointer; color: var(--ink-soft);
+}
+.tagchip:hover { border-color: var(--terra); color: var(--terra-deep); }
+.tagchip.sel { background: var(--terra-soft); border-color: var(--terra-deep); color: var(--terra-deep); font-weight: 700; }
+.tcount { opacity: .65; font-size: 12px; }
+
+/* ---------- insights calendar ---------- */
+.calnav { display: flex; gap: 14px; align-items: center; margin: 6px 0 12px; }
+.calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; max-width: 520px; }
+.cal-h { text-align: center; font-size: 11.5px; font-weight: 700; color: var(--muted); padding: 4px 0; }
+.cal-d {
+  border: 1px solid var(--line); background: var(--card); border-radius: 0;
+  min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; cursor: default; padding: 4px 2px;
+}
+.cal-d.out { opacity: .35; }
+.cal-d.today { border: 2px solid var(--terra-deep); }
+.cal-d.has { cursor: pointer; }
+.cal-d.has:hover { border-color: var(--terra-deep); }
+.cal-n { font-size: 12.5px; color: var(--ink-soft); }
+.cal-dot { width: 10px; height: 10px; display: block; }
+
+/* ---------- secondary (ghost) button ---------- */
+.ghost {
+  background: none; border: 1px solid var(--line); color: var(--terra-deep);
+  border-radius: 0; padding: 9px 18px; font-size: 14px; font-weight: 600; min-height: 42px;
+}
+.ghost:hover { border-color: var(--terra-deep); background: var(--terra-soft); }

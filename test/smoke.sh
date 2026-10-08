@@ -171,4 +171,88 @@ pass "responsive @media present"
 ! grep -q 'class="brand">[^<]*[📓✍️📚📊]' index.html || fail "emoji in brand header"
 pass "no emoji in brand header"
 
+# 16: markdown export — oldest first, mood + prompt included
+node -e "
+const JP = require('./js/logic.js');
+let e = [];
+e = JP.saveEntry(e, '2026-09-28', { text: 'second', mood: 'good' });
+e = JP.saveEntry(e, '2026-09-26', { text: 'first', mood: 'great' });
+const md = JP.entriesToMarkdown(e);
+if (!/^# Journal Export/.test(md)) throw new Error('missing title');
+if (md.indexOf('## 2026-09-26') > md.indexOf('## 2026-09-28')) throw new Error('not oldest-first');
+if (!/Great/.test(md) || !/second/.test(md)) throw new Error('missing mood/text');
+console.log('OK');
+" || fail "markdown export"
+pass "entriesToMarkdown exports oldest-first with moods"
+
+# 17: word goal progress math
+node -e "
+const JP = require('./js/logic.js');
+if (JP.DEFAULT_WORD_GOAL !== 200) throw new Error('default goal');
+const g1 = JP.goalProgress(50, 200);
+if (g1.pct !== 25 || g1.met) throw new Error('pct ' + JSON.stringify(g1));
+const g2 = JP.goalProgress(250, 200);
+if (g2.pct !== 100 || !g2.met) throw new Error('cap ' + JSON.stringify(g2));
+const g3 = JP.goalProgress(10, 0);
+if (g3.goal !== 200) throw new Error('bad goal fallback');
+console.log('OK');
+" || fail "word goal progress"
+pass "goalProgress: pct capped at 100, met flag, bad-goal fallback"
+
+# 18: hashtag extraction + tag aggregation + filtering
+node -e "
+const JP = require('./js/logic.js');
+let e = [];
+e = JP.saveEntry(e, '2026-09-28', { text: 'Morning run #fitness felt great #fitness' });
+e = JP.saveEntry(e, '2026-09-27', { text: 'Read a book #reading' });
+e = JP.saveEntry(e, '2026-09-26', { text: 'No tags here' });
+if (JSON.stringify(JP.extractTags('#Ab #ab #ok-x_y #z')) !== '[\"ab\",\"ok-x_y\"]') throw new Error('extract: ' + JSON.stringify(JP.extractTags('#Ab #ab #ok-x_y #z')));
+const tags = JP.entryTags(e);
+if (tags.length !== 2 || tags[0].tag !== 'fitness' || tags[0].count !== 1) throw new Error('entryTags: ' + JSON.stringify(tags));
+if (JP.entriesWithTag(e, 'fitness').length !== 1) throw new Error('filter fitness');
+if (JP.entriesWithTag(e, '#READING').length !== 1) throw new Error('filter case-insensitive with #');
+if (JP.entriesWithTag(e, 'nope').length !== 0) throw new Error('filter false positive');
+console.log('OK');
+" || fail "hashtags"
+pass "hashtags: extract dedupes, counts, filters case-insensitively"
+
+# 19: month calendar grid — 42 cells, weeks start Monday, entries marked
+node -e "
+const JP = require('./js/logic.js');
+let e = [];
+e = JP.saveEntry(e, '2026-10-05', { text: 'x', mood: 'good' });
+const days = JP.monthDays(e, 2026, 10);
+if (days.length !== 42) throw new Error('want 42 cells');
+// 2026-10-01 is a Thursday; grid starts Monday 2026-09-28
+if (days[0].date !== '2026-09-28' || days[3].date !== '2026-10-01') throw new Error('grid start: ' + days[0].date);
+const hit = days.find(d => d.date === '2026-10-05');
+if (!hit.hasEntry || hit.mood !== 'good' || !hit.inMonth) throw new Error('entry cell');
+if (days[0].inMonth) throw new Error('Sep day should be out-of-month');
+console.log('OK');
+" || fail "calendar grid"
+pass "monthDays: 42-cell Monday-start grid with entry/mood flags"
+
+# 20: on this day — same MM-DD from previous years only
+node -e "
+const JP = require('./js/logic.js');
+let e = [];
+e = JP.saveEntry(e, '2024-10-08', { text: 'two years ago' });
+e = JP.saveEntry(e, '2025-10-08', { text: 'one year ago' });
+e = JP.saveEntry(e, '2025-10-09', { text: 'wrong day' });
+const otd = JP.onThisDay(e, '2026-10-08');
+if (otd.length !== 2) throw new Error('want 2, got ' + otd.length);
+if (otd[0].date !== '2024-10-08' || otd[1].date !== '2025-10-08') throw new Error('order');
+if (JP.onThisDay(e, '2026-10-09').length !== 1) throw new Error('no same-day entry today');
+console.log('OK');
+" || fail "on this day"
+pass "onThisDay returns prior years' same-date entries, oldest first"
+
+# 21: new UI wired
+for id in wordGoal goalFill goalText onThisDay exportMd tagChips calGrid calTitle calPrev calNext; do
+  grep -q "id=\"$id\"" index.html || fail "index.html missing #$id"
+done
+pass "new UI elements present in index.html"
+grep -q 'onThisDay\|goalProgress\|monthDays\|entriesToMarkdown\|extractTags' js/app.js || fail "app.js missing wiring"
+pass "app.js wires goal/tags/calendar/export/on-this-day"
+
 echo "All smoke tests passed."

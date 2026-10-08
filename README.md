@@ -21,6 +21,11 @@ python3 -m http.server 8000
 - **Streaks** — current streak (tolerates today being unwritten) + longest streak
 - **Search** — case-insensitive search across entry text and prompts
 - **Insights** — entry/word counts and mood distribution bars
+- **Calendar** — month grid with mood-colored dots; click a day to open it
+- **Word goal** — set a daily word target and watch the progress bar fill as you write
+- **#Tags** — hashtag your entries; filter the whole journal by tag
+- **On this day** — entries from the same date in past years, right under today's entry
+- **Export** — download the whole journal as Markdown
 - **Edit & delete** — reopen any entry to revise it
 
 ## Tests

@@ -162,6 +162,86 @@ function totalWords(entries) {
   return entries.reduce(function (n, e) { return n + wordCount(e.text); }, 0);
 }
 
+// ---- markdown export (oldest first, one section per entry) ----
+function entriesToMarkdown(entries) {
+  const sorted = entries.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+  const lines = ["# Journal Export", "",
+    "Exported " + todayISO() + " · " + sorted.length + " entr" + (sorted.length === 1 ? "y" : "ies"), ""];
+  sorted.forEach(function (e) {
+    lines.push("## " + e.date + (e.mood && MOOD_LABELS[e.mood] ? " — " + MOOD_LABELS[e.mood] : ""));
+    if (e.prompt && e.prompt.text) { lines.push("", "> " + e.prompt.text); }
+    lines.push("", e.text, "");
+  });
+  return lines.join("\n").trim() + "\n";
+}
+
+// ---- daily word goal ----
+const DEFAULT_WORD_GOAL = 200;
+function goalProgress(words, goal) {
+  const g = Number(goal) > 0 ? Math.floor(Number(goal)) : DEFAULT_WORD_GOAL;
+  const w = Math.max(0, Math.floor(Number(words) || 0));
+  return { words: w, goal: g, pct: Math.min(100, Math.round((w / g) * 100)), met: w >= g };
+}
+
+// ---- hashtags: #tag (2+ chars, letters/digits/_/-) ----
+function extractTags(text) {
+  const tags = [];
+  const re = /#([a-zA-Z0-9_-]{2,})/g;
+  let m;
+  while ((m = re.exec(text || ""))) {
+    const t = m[1].toLowerCase();
+    if (tags.indexOf(t) === -1) tags.push(t);
+  }
+  return tags;
+}
+
+function entryTags(entries) {
+  const counts = {};
+  entries.forEach(function (e) {
+    extractTags(e.text).forEach(function (t) { counts[t] = (counts[t] || 0) + 1; });
+  });
+  return Object.keys(counts)
+    .map(function (t) { return { tag: t, count: counts[t] }; })
+    .sort(function (a, b) { return b.count - a.count || (a.tag < b.tag ? -1 : 1); });
+}
+
+function entriesWithTag(entries, tag) {
+  const t = String(tag || "").toLowerCase().replace(/^#/, "");
+  if (!t) return [];
+  return entries.filter(function (e) { return extractTags(e.text).indexOf(t) !== -1; });
+}
+
+// ---- month calendar grid (6 rows x 7 cols, weeks start Monday) ----
+function monthDays(entries, year, month) {
+  const first = new Date(year, month - 1, 1);
+  const start = new Date(first);
+  start.setDate(first.getDate() - ((first.getDay() + 6) % 7));
+  const byDate = {};
+  entries.forEach(function (e) { byDate[e.date] = e.mood; });
+  const days = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const iso = todayISO(d);
+    days.push({
+      date: iso,
+      inMonth: d.getMonth() === month - 1 && d.getFullYear() === year,
+      hasEntry: Object.prototype.hasOwnProperty.call(byDate, iso),
+      mood: byDate[iso] || null
+    });
+  }
+  return days;
+}
+
+// ---- on this day: same MM-DD from previous years ----
+function onThisDay(entries, dateISO) {
+  const md = String(dateISO || "").slice(5);
+  if (!/^\d{2}-\d{2}$/.test(md)) return [];
+  return entries
+    .filter(function (e) { return e.date !== dateISO && e.date.slice(5) === md; })
+    .sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+}
+
 const api = {
   MOODS: MOODS, MOOD_LABELS: MOOD_LABELS, MOOD_EMOJI: MOOD_EMOJI, MOOD_COLORS: MOOD_COLORS,
   loadEntries: loadEntries, persistEntries: persistEntries,
@@ -170,7 +250,11 @@ const api = {
   getEntry: getEntry, saveEntry: saveEntry, deleteEntry: deleteEntry,
   hasEntryOn: hasEntryOn, currentStreak: currentStreak, longestStreak: longestStreak,
   searchEntries: searchEntries, moodCounts: moodCounts,
-  wordCount: wordCount, totalWords: totalWords
+  wordCount: wordCount, totalWords: totalWords,
+  entriesToMarkdown: entriesToMarkdown,
+  DEFAULT_WORD_GOAL: DEFAULT_WORD_GOAL, goalProgress: goalProgress,
+  extractTags: extractTags, entryTags: entryTags, entriesWithTag: entriesWithTag,
+  monthDays: monthDays, onThisDay: onThisDay
 };
 
 if (typeof window !== "undefined") window.JournalPilot = api;
