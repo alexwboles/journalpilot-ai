@@ -202,7 +202,36 @@ function renderInsights() {
     "<div class='stat'><strong>" + JP.totalWords(entries).toLocaleString() + "</strong><span>words</span></div>" +
     "<div class='stat'><strong>" + JP.longestStreak(entries) + "</strong><span>longest streak</span></div>" +
     "<div class='stat'><strong>" + JP.currentStreak(entries) + "</strong><span>current streak</span></div>";
+  renderMoodTrend();
+  renderMonthRecap();
   renderCalendar();
+}
+
+function renderMoodTrend() {
+  const trend = JP.moodTrend(entries, 8);
+  el("moodTrend").innerHTML = trend.map(function (w) {
+    const h = w.avg == null ? 0 : Math.round(((w.avg - 1) / 4) * 44);
+    const label = w.avg == null ? "—" : w.avg.toFixed(1);
+    const color = w.avg == null ? "#ccc" : w.avg >= 4 ? JP.MOOD_COLORS.great : w.avg >= 3 ? JP.MOOD_COLORS.okay : JP.MOOD_COLORS.rough;
+    return '<div class="tbar" title="Week of ' + w.week + ": " + label + '"><div class="tfill" style="height:' + h +
+      'px;background:' + color + '"></div><span>' + w.week.slice(5).replace("-", "/") + "</span></div>";
+  }).join("");
+}
+
+function renderMonthRecap() {
+  const r = JP.monthlyRecap(entries, calYear, calMonth);
+  const box = el("monthRecap");
+  if (!r.entries) {
+    box.innerHTML = '<p class="muted">No entries in ' + MONTH_LABELS[calMonth - 1] + ' yet.</p>';
+    return;
+  }
+  const tags = r.topTags.map(function (t) { return "#" + esc(t.tag); }).join(" ");
+  box.innerHTML = '<div class="stat"><strong>' + r.entries + "</strong><span>entries</span></div>" +
+    '<div class="stat"><strong>' + r.words.toLocaleString() + "</strong><span>words</span></div>" +
+    '<div class="stat"><strong>' + r.avgWords + "</strong><span>avg words</span></div>" +
+    (r.dominantMood ? '<div class="stat"><strong>' + JP.MOOD_EMOJI[r.dominantMood] + "</strong><span>top mood</span></div>" : "") +
+    (r.longestEntry ? '<div class="stat"><strong>' + r.longestEntry.words + "</strong><span>longest (" + r.longestEntry.date + ")</span></div>" : "") +
+    (tags ? '<p class="muted small">Top tags: ' + tags + "</p>" : "");
 }
 
 const MONTH_LABELS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -264,20 +293,23 @@ function init() {
   };
   el("exportMd").onclick = function () {
     if (!entries.length) { alert("No entries to export yet."); return; }
-    const blob = new Blob([JP.entriesToMarkdown(entries)], { type: "text/markdown" });
+    const opts = activeTag ? { tag: activeTag } : {};
+    const md = JP.entriesToMarkdown(entries, opts);
+    if (activeTag && md.indexOf("## ") === -1) { alert("No entries tagged #" + activeTag + "."); return; }
+    const blob = new Blob([md], { type: "text/markdown" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "journal-export-" + JP.todayISO() + ".md";
+    a.download = "journal-export" + (activeTag ? "-tag-" + activeTag : "") + "-" + JP.todayISO() + ".md";
     a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
   };
   el("calPrev").onclick = function () {
     calMonth--; if (calMonth < 1) { calMonth = 12; calYear--; }
-    renderCalendar();
+    renderMonthRecap(); renderCalendar();
   };
   el("calNext").onclick = function () {
     calMonth++; if (calMonth > 12) { calMonth = 1; calYear++; }
-    renderCalendar();
+    renderMonthRecap(); renderCalendar();
   };
   setTab("today");
 }

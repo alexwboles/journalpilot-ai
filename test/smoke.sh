@@ -248,11 +248,67 @@ console.log('OK');
 pass "onThisDay returns prior years' same-date entries, oldest first"
 
 # 21: new UI wired
-for id in wordGoal goalFill goalText onThisDay exportMd tagChips calGrid calTitle calPrev calNext; do
+for id in wordGoal goalFill goalText onThisDay exportMd tagChips calGrid calTitle calPrev calNext moodTrend monthRecap; do
   grep -q "id=\"$id\"" index.html || fail "index.html missing #$id"
 done
 pass "new UI elements present in index.html"
 grep -q 'onThisDay\|goalProgress\|monthDays\|entriesToMarkdown\|extractTags' js/app.js || fail "app.js missing wiring"
 pass "app.js wires goal/tags/calendar/export/on-this-day"
+grep -q 'moodTrend\|monthlyRecap' js/app.js || fail "app.js missing trend/recap wiring"
+pass "app.js wires moodTrend + monthlyRecap"
+
+# 22: mood trend — weekly averages
+node -e "
+const JP = require('./js/logic.js');
+let e = [];
+e = JP.saveEntry(e, '2026-10-05', { text: 'great day indeed', mood: 'great' });   // Monday
+e = JP.saveEntry(e, '2026-10-07', { text: 'good day too', mood: 'good' });         // Wednesday
+e = JP.saveEntry(e, '2026-10-08', { text: 'rough one', mood: 'rough' });           // Thursday
+const t = JP.moodTrend(e, 2, '2026-10-08');
+if (t.length !== 2) throw new Error('expected 2 weeks, got ' + t.length);
+if (t[0].entries !== 0 || t[0].avg !== null) throw new Error('empty week should be null, got ' + JSON.stringify(t[0]));
+if (t[1].entries !== 3 || t[1].avg !== 3.3) throw new Error('avg wrong: ' + JSON.stringify(t[1]));
+if (JP.weekStartISO('2026-10-08') !== '2026-10-05') throw new Error('weekStart not Monday');
+console.log('OK');
+" || fail "mood trend"
+pass "moodTrend: weekly avg (5+4+1)/3 = 3.3, empty week null, Monday start"
+
+# 23: monthly recap
+node -e "
+const JP = require('./js/logic.js');
+let e = [];
+e = JP.saveEntry(e, '2026-10-01', { text: 'one two three #goals', mood: 'good' });
+e = JP.saveEntry(e, '2026-10-15', { text: 'four five six seven eight #goals #health', mood: 'great' });
+e = JP.saveEntry(e, '2026-09-20', { text: 'september entry here', mood: 'low' });
+const r = JP.monthlyRecap(e, 2026, 10);
+if (r.entries !== 2) throw new Error('entries ' + r.entries);
+if (r.words !== 11) throw new Error('words ' + r.words);
+if (r.avgWords !== 6) throw new Error('avg ' + r.avgWords);
+if (r.dominantMood !== 'good' && r.dominantMood !== 'great') throw new Error('dominant ' + r.dominantMood);
+if (!r.topTags.length || r.topTags[0].tag !== 'goals') throw new Error('tags ' + JSON.stringify(r.topTags));
+if (!r.longestEntry || r.longestEntry.date !== '2026-10-15') throw new Error('longest ' + JSON.stringify(r.longestEntry));
+const empty = JP.monthlyRecap(e, 2026, 11);
+if (empty.entries !== 0 || empty.dominantMood !== null) throw new Error('empty month wrong');
+console.log('OK');
+" || fail "monthly recap"
+pass "monthlyRecap: 2 entries, 11 words, top tag #goals, longest 2026-10-15"
+
+# 24: tag-filtered + date-range markdown export
+node -e "
+const JP = require('./js/logic.js');
+let e = [];
+e = JP.saveEntry(e, '2026-10-01', { text: 'morning run #health', mood: 'good' });
+e = JP.saveEntry(e, '2026-10-02', { text: 'plain day', mood: 'okay' });
+e = JP.saveEntry(e, '2026-11-01', { text: 'november #health', mood: 'great' });
+const tagMd = JP.entriesToMarkdown(e, { tag: 'health' });
+if (!/2026-10-01/.test(tagMd) || !/2026-11-01/.test(tagMd) || /2026-10-02/.test(tagMd)) throw new Error('tag filter wrong');
+if (!/tagged #health/.test(tagMd)) throw new Error('tag scope line missing');
+const rangeMd = JP.entriesToMarkdown(e, { from: '2026-10-01', to: '2026-10-31' });
+if (!/2026-10-01/.test(rangeMd) || /2026-11-01/.test(rangeMd)) throw new Error('range filter wrong');
+const full = JP.entriesToMarkdown(e);
+if (!/2026-10-02/.test(full)) throw new Error('unfiltered export lost entries');
+console.log('OK');
+" || fail "filtered export"
+pass "entriesToMarkdown: tag filter, date range, unfiltered backward-compat"
 
 echo "All smoke tests passed."

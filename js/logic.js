@@ -242,14 +242,91 @@ function onThisDay(entries, dateISO) {
     .sort(function (a, b) { return a.date < b.date ? -1 : 1; });
 }
 
+// ---- monthly recap: "your October in review" ----
+function monthlyRecap(entries, year, month) {
+  const prefix = year + "-" + String(month).padStart(2, "0");
+  const list = (entries || []).filter(function (e) { return e.date.slice(0, 7) === prefix; });
+  const words = totalWords(list);
+  const mc = moodCounts(list);
+  let dominant = null, best = 0;
+  MOODS.forEach(function (m) { if (mc[m] > best) { best = mc[m]; dominant = m; } });
+  let longest = null;
+  list.forEach(function (e) {
+    const w = wordCount(e.text);
+    if (!longest || w > longest.words) longest = { date: e.date, words: w };
+  });
+  return {
+    year: year, month: month,
+    entries: list.length,
+    words: words,
+    avgWords: list.length ? Math.round(words / list.length) : 0,
+    dominantMood: dominant,
+    moodCounts: mc,
+    topTags: entryTags(list).slice(0, 3),
+    longestEntry: longest
+  };
+}
+
+// ---- mood trend: weekly average mood score (great=5 .. rough=1) ----
+const MOOD_SCORES = { great: 5, good: 4, okay: 3, low: 2, rough: 1 };
+
+function weekStartISO(iso) {
+  const d = new Date(iso + "T12:00:00");
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // Monday
+  return todayISO(d);
+}
+
+function moodTrend(entries, weeks, refISO) {
+  const n = Math.max(1, Math.min(52, Number(weeks) || 8));
+  const byDate = {};
+  (entries || []).forEach(function (e) { byDate[e.date] = e.mood; });
+  const start = weekStartISO(refISO || todayISO());
+  const out = [];
+  for (let w = n - 1; w >= 0; w--) {
+    const ws = addDaysISO(start, -7 * w);
+    let sum = 0, count = 0;
+    for (let i = 0; i < 7; i++) {
+      const mood = byDate[addDaysISO(ws, i)];
+      if (mood && MOOD_SCORES[mood]) { sum += MOOD_SCORES[mood]; count++; }
+    }
+    out.push({
+      week: ws,
+      entries: count,
+      avg: count ? Math.round((sum / count) * 10) / 10 : null
+    });
+  }
+  return out;
+}
+
+// ---- filtered markdown export: entriesToMarkdown(entries, {tag, from, to}) ----
+function entriesToMarkdown(entries, opts) {
+  const o = opts || {};
+  let list = (entries || []).slice();
+  if (o.tag) list = entriesWithTag(list, o.tag);
+  if (o.from) list = list.filter(function (e) { return e.date >= o.from; });
+  if (o.to) list = list.filter(function (e) { return e.date <= o.to; });
+  const sorted = list.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+  const scope = o.tag ? " tagged #" + String(o.tag).replace(/^#/, "") : "";
+  const lines = ["# Journal Export" + scope, "",
+    "Exported " + todayISO() + " · " + sorted.length + " entr" + (sorted.length === 1 ? "y" : "ies"), ""];
+  sorted.forEach(function (e) {
+    lines.push("## " + e.date + (e.mood && MOOD_LABELS[e.mood] ? " — " + MOOD_LABELS[e.mood] : ""));
+    if (e.prompt && e.prompt.text) { lines.push("", "> " + e.prompt.text); }
+    lines.push("", e.text, "");
+  });
+  return lines.join("\n").trim() + "\n";
+}
+
 const api = {
   MOODS: MOODS, MOOD_LABELS: MOOD_LABELS, MOOD_EMOJI: MOOD_EMOJI, MOOD_COLORS: MOOD_COLORS,
+  MOOD_SCORES: MOOD_SCORES,
   loadEntries: loadEntries, persistEntries: persistEntries,
-  todayISO: todayISO, addDaysISO: addDaysISO,
+  todayISO: todayISO, addDaysISO: addDaysISO, weekStartISO: weekStartISO,
   promptForDate: promptForDate,
   getEntry: getEntry, saveEntry: saveEntry, deleteEntry: deleteEntry,
   hasEntryOn: hasEntryOn, currentStreak: currentStreak, longestStreak: longestStreak,
   searchEntries: searchEntries, moodCounts: moodCounts,
+  moodTrend: moodTrend, monthlyRecap: monthlyRecap,
   wordCount: wordCount, totalWords: totalWords,
   entriesToMarkdown: entriesToMarkdown,
   DEFAULT_WORD_GOAL: DEFAULT_WORD_GOAL, goalProgress: goalProgress,

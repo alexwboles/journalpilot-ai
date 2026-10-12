@@ -143,4 +143,40 @@ flow("on this day across years", () => {
   if (!feb29 || !feb29.inMonth) throw new Error("leap day missing from grid");
 });
 
+// 12: monthly recap journey — a full October tells its story
+flow("monthly recap journey", () => {
+  let e = [];
+  e = JP.saveEntry(e, "2026-10-01", { text: "Started the new quarter with energy #goals", mood: "great" });
+  e = JP.saveEntry(e, "2026-10-02", { text: "Long meeting day, drained by evening #work", mood: "low" });
+  e = JP.saveEntry(e, "2026-10-03", { text: "Quiet Saturday reset #goals", mood: "good" });
+  e = JP.saveEntry(e, "2026-11-01", { text: "November begins", mood: "okay" });
+  const r = JP.monthlyRecap(e, 2026, 10);
+  if (r.entries !== 3) throw new Error("recap entries");
+  if (r.topTags[0].tag !== "goals" || r.topTags[0].count !== 2) throw new Error("recap tags");
+  if (r.longestEntry.date !== "2026-10-02") throw new Error("recap longest (tie -> most recent)");
+});
+
+// 13: mood trend journey — a rough week shows up in the trend
+flow("mood trend journey", () => {
+  let e = [];
+  e = JP.saveEntry(e, "2026-10-05", { text: "rough start to the week", mood: "rough" });
+  e = JP.saveEntry(e, "2026-10-06", { text: "still rough", mood: "rough" });
+  e = JP.saveEntry(e, "2026-10-12", { text: "better week great", mood: "great" });
+  const t = JP.moodTrend(e, 2, "2026-10-12");
+  if (t[0].avg !== 1) throw new Error("rough week avg should be 1, got " + t[0].avg);
+  if (t[1].avg !== 5) throw new Error("recovery week avg should be 5, got " + t[1].avg);
+});
+
+// 14: filtered export journey — export just one tag's story
+flow("filtered export journey", () => {
+  let e = [];
+  e = JP.saveEntry(e, "2026-10-01", { text: "Morning run, feeling strong #fitness", mood: "great" });
+  e = JP.saveEntry(e, "2026-10-02", { text: "Rest day, sore legs #fitness", mood: "okay" });
+  e = JP.saveEntry(e, "2026-10-03", { text: "Work presentation went well", mood: "good" });
+  const md = JP.entriesToMarkdown(e, { tag: "fitness" });
+  const sections = md.split("\n## ").length - 1;
+  if (sections !== 2) throw new Error("tag export should have 2 entries, got " + sections);
+  if (/presentation/.test(md)) throw new Error("untagged entry leaked into export");
+});
+
 console.log("All " + flows + " e2e flows passed.");
