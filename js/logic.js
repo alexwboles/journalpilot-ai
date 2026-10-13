@@ -298,6 +298,89 @@ function moodTrend(entries, weeks, refISO) {
   return out;
 }
 
+// ---- yearly recap: "your 2026 in review" ----
+function yearlyRecap(entries, year) {
+  const prefix = String(year) + "-";
+  const list = (entries || []).filter(function (e) { return e.date.slice(0, 5) === prefix; });
+  const words = totalWords(list);
+  const mc = moodCounts(list);
+  let dominant = null, best = 0;
+  MOODS.forEach(function (m) { if (mc[m] > best) { best = mc[m]; dominant = m; } });
+  const byMonth = {};
+  list.forEach(function (e) {
+    const k = e.date.slice(0, 7);
+    byMonth[k] = (byMonth[k] || 0) + 1;
+  });
+  let bestMonth = null;
+  Object.keys(byMonth).forEach(function (k) {
+    if (!bestMonth || byMonth[k] > byMonth[bestMonth]) bestMonth = k;
+  });
+  // Longest writing streak contained in this year.
+  const dates = list.map(function (e) { return e.date; }).sort();
+  let run = 0, longest = 0, prev = null;
+  dates.forEach(function (d) {
+    if (prev && addDaysISO(prev, 1) === d) { run++; } else { run = 1; }
+    if (run > longest) longest = run;
+    prev = d;
+  });
+  return {
+    year: Number(year), entries: list.length, words: words,
+    avgWords: list.length ? Math.round(words / list.length) : 0,
+    dominantMood: dominant, moodCounts: mc,
+    monthsWritten: Object.keys(byMonth).length,
+    bestMonth: bestMonth, bestMonthEntries: bestMonth ? byMonth[bestMonth] : 0,
+    topTags: entryTags(list).slice(0, 5),
+    longestStreak: longest
+  };
+}
+
+// ---- words by mood: do you write more on good days? ----
+function wordsByMood(entries) {
+  const out = {};
+  MOODS.forEach(function (m) { out[m] = { mood: m, entries: 0, words: 0, avgWords: 0 }; });
+  (entries || []).forEach(function (e) {
+    if (!out[e.mood]) return;
+    out[e.mood].entries++;
+    out[e.mood].words += wordCount(e.text);
+  });
+  MOODS.forEach(function (m) {
+    out[m].avgWords = out[m].entries ? Math.round(out[m].words / out[m].entries) : 0;
+  });
+  return MOODS.map(function (m) { return out[m]; });
+}
+
+// ---- JSON backup / restore: full-fidelity copy of the journal ----
+function exportBackup(entries, goal) {
+  return JSON.stringify({
+    app: "journalpilot", version: 1,
+    exportedAt: new Date().toISOString(),
+    wordGoal: goal || null,
+    entries: entries || []
+  }, null, 2);
+}
+
+function importBackup(json) {
+  let obj;
+  try { obj = JSON.parse(json); } catch (e) { throw new Error("That file isn't valid JSON."); }
+  const arr = Array.isArray(obj) ? obj : obj.entries;
+  if (!Array.isArray(arr)) throw new Error("Backup has no entries array.");
+  const clean = [];
+  arr.forEach(function (e, i) {
+    if (!e || !/^\d{4}-\d{2}-\d{2}$/.test(e.date || "")) throw new Error("Bad date on entry " + (i + 1) + ".");
+    const text = String(e.text || "").trim();
+    if (!text) throw new Error("Empty text on entry " + (i + 1) + ".");
+    if (MOODS.indexOf(e.mood) === -1) throw new Error("Bad mood on entry " + (i + 1) + ".");
+    clean.push({
+      date: e.date, text: text, mood: e.mood,
+      prompt: e.prompt || promptForDate(e.date),
+      updatedAt: e.updatedAt || new Date().toISOString()
+    });
+  });
+  clean.sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+  const goal = obj && Number(obj.wordGoal) > 0 ? Math.floor(Number(obj.wordGoal)) : null;
+  return { entries: clean, wordGoal: goal };
+}
+
 // ---- filtered markdown export: entriesToMarkdown(entries, {tag, from, to}) ----
 function entriesToMarkdown(entries, opts) {
   const o = opts || {};
@@ -326,7 +409,8 @@ const api = {
   getEntry: getEntry, saveEntry: saveEntry, deleteEntry: deleteEntry,
   hasEntryOn: hasEntryOn, currentStreak: currentStreak, longestStreak: longestStreak,
   searchEntries: searchEntries, moodCounts: moodCounts,
-  moodTrend: moodTrend, monthlyRecap: monthlyRecap,
+  moodTrend: moodTrend, monthlyRecap: monthlyRecap, yearlyRecap: yearlyRecap,
+  wordsByMood: wordsByMood, exportBackup: exportBackup, importBackup: importBackup,
   wordCount: wordCount, totalWords: totalWords,
   entriesToMarkdown: entriesToMarkdown,
   DEFAULT_WORD_GOAL: DEFAULT_WORD_GOAL, goalProgress: goalProgress,

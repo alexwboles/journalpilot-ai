@@ -311,4 +311,73 @@ console.log('OK');
 " || fail "filtered export"
 pass "entriesToMarkdown: tag filter, date range, unfiltered backward-compat"
 
+# 25: yearly recap
+node -e "
+const JP = require('./js/logic.js');
+let e = [];
+e = JP.saveEntry(e, '2026-01-05', { text: 'one two #goals', mood: 'good' });
+e = JP.saveEntry(e, '2026-01-06', { text: 'two three four #goals #health', mood: 'great' });
+e = JP.saveEntry(e, '2026-03-10', { text: 'march words here now', mood: 'low' });
+e = JP.saveEntry(e, '2025-12-31', { text: 'last year', mood: 'okay' });
+const r = JP.yearlyRecap(e, 2026);
+if (r.entries !== 3) throw new Error('entries ' + r.entries);
+if (r.words !== 12) throw new Error('words ' + r.words);
+if (r.monthsWritten !== 2) throw new Error('months ' + r.monthsWritten);
+if (r.bestMonth !== '2026-01' || r.bestMonthEntries !== 2) throw new Error('bestMonth ' + r.bestMonth);
+if (r.longestStreak !== 2) throw new Error('streak ' + r.longestStreak);
+if (!r.topTags.length || r.topTags[0].tag !== 'goals') throw new Error('tags');
+const empty = JP.yearlyRecap(e, 2024);
+if (empty.entries !== 0 || empty.bestMonth !== null) throw new Error('empty year wrong');
+console.log('OK');
+" || fail "yearly recap"
+pass "yearlyRecap: 3 entries, best month 2026-01, streak 2, top tag #goals"
+
+# 26: words by mood
+node -e "
+const JP = require('./js/logic.js');
+let e = [];
+e = JP.saveEntry(e, '2026-10-01', { text: 'one two three four', mood: 'great' });
+e = JP.saveEntry(e, '2026-10-02', { text: 'one two', mood: 'great' });
+e = JP.saveEntry(e, '2026-10-03', { text: 'one', mood: 'rough' });
+const w = JP.wordsByMood(e);
+const byMood = {};
+w.forEach(function (r) { byMood[r.mood] = r; });
+if (byMood.great.entries !== 2 || byMood.great.avgWords !== 3) throw new Error('great ' + JSON.stringify(byMood.great));
+if (byMood.rough.entries !== 1 || byMood.rough.avgWords !== 1) throw new Error('rough');
+if (byMood.good.entries !== 0 || byMood.good.avgWords !== 0) throw new Error('empty mood');
+console.log('OK');
+" || fail "words by mood"
+pass "wordsByMood: great avg 3 words over 2 entries, rough 1, unused moods zero"
+
+# 27: JSON backup round-trip + validation
+node -e "
+const JP = require('./js/logic.js');
+let e = [];
+e = JP.saveEntry(e, '2026-10-01', { text: 'hello world #tag', mood: 'good' });
+const json = JP.exportBackup(e, 300);
+const obj = JSON.parse(json);
+if (obj.app !== 'journalpilot' || obj.wordGoal !== 300 || obj.entries.length !== 1) throw new Error('backup shape');
+const res = JP.importBackup(json);
+if (res.entries.length !== 1 || res.entries[0].text !== 'hello world #tag') throw new Error('restore lost entry');
+if (res.wordGoal !== 300) throw new Error('restore lost goal');
+const res2 = JP.importBackup(JSON.stringify(res.entries)); // bare array also accepted
+if (res2.entries.length !== 1 || res2.wordGoal !== null) throw new Error('bare array');
+let threw = 0;
+try { JP.importBackup('nope'); } catch (x) { threw++; }
+try { JP.importBackup(JSON.stringify([{ date: 'bad', text: 'x', mood: 'good' }])); } catch (x) { threw++; }
+try { JP.importBackup(JSON.stringify([{ date: '2026-10-01', text: '   ', mood: 'good' }])); } catch (x) { threw++; }
+try { JP.importBackup(JSON.stringify({ entries: 'no' })); } catch (x) { threw++; }
+if (threw !== 4) throw new Error('validation gaps: ' + threw);
+console.log('OK');
+" || fail "backup round-trip"
+pass "backup: export shape, import restores entries+goal, 4 bad inputs rejected"
+
+# 28: new UI wiring present
+grep -q 'id="yearRecap"' index.html && grep -q 'id="moodWords"' index.html \
+  && grep -q 'id="backupBtn"' index.html && grep -q 'id="restoreBtn"' index.html \
+  && grep -q 'renderYearRecap' js/app.js && grep -q 'renderMoodWords' js/app.js \
+  && grep -q 'importBackup' js/app.js \
+  || fail "new UI wiring"
+pass "UI: year recap, mood-words, backup/restore wired"
+
 echo "All smoke tests passed."

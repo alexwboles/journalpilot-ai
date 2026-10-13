@@ -179,4 +179,43 @@ flow("filtered export journey", () => {
   if (/presentation/.test(md)) throw new Error("untagged entry leaked into export");
 });
 
+// 15: year in review journey — a full year of journaling summarizes honestly
+flow("year in review journey", () => {
+  let e = [];
+  e = JP.saveEntry(e, "2026-01-02", { text: "new year fresh start", mood: "great" });
+  e = JP.saveEntry(e, "2026-01-03", { text: "still going strong here", mood: "good" });
+  e = JP.saveEntry(e, "2026-06-15", { text: "midyear check in #goals", mood: "okay" });
+  const r = JP.yearlyRecap(e, 2026);
+  if (r.entries !== 3) throw new Error("entries");
+  if (r.monthsWritten !== 2) throw new Error("months written");
+  if (r.bestMonth !== "2026-01") throw new Error("best month");
+  if (r.longestStreak !== 2) throw new Error("year streak");
+  if (r.topTags[0].tag !== "goals") throw new Error("year tags");
+  if (JP.yearlyRecap(e, 2025).entries !== 0) throw new Error("other year empty");
+});
+
+// 16: mood x words journey — long entries land on good days
+flow("mood x words journey", () => {
+  let e = [];
+  e = JP.saveEntry(e, "2026-10-01", { text: "wonderful long wonderful entry today yes", mood: "great" });
+  e = JP.saveEntry(e, "2026-10-02", { text: "bleh", mood: "rough" });
+  const w = JP.wordsByMood(e);
+  const great = w.find((r) => r.mood === "great");
+  const rough = w.find((r) => r.mood === "rough");
+  if (great.avgWords !== 6 || rough.avgWords !== 1) throw new Error("averages wrong");
+});
+
+// 17: backup journey — full restore from a JSON backup
+flow("backup and restore journey", () => {
+  let e = [];
+  e = JP.saveEntry(e, "2026-10-01", { text: "first entry #start", mood: "good" });
+  e = JP.saveEntry(e, "2026-10-02", { text: "second entry", mood: "great" });
+  const json = JP.exportBackup(e, 250);
+  const res = JP.importBackup(json);
+  if (res.entries.length !== 2) throw new Error("restore count");
+  if (res.entries[0].date !== "2026-10-02") throw new Error("newest-first order lost");
+  if (res.entries[1].text !== "first entry #start") throw new Error("text lost");
+  if (res.wordGoal !== 250) throw new Error("goal lost");
+});
+
 console.log("All " + flows + " e2e flows passed.");

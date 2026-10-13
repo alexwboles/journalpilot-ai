@@ -262,3 +262,7 @@ footer { text-align: center; padding: 28px 20px 34px; border-top: 1px solid var(
 .tfill { width: 100%; min-height: 2px; background: #ccc; }
 .tbar span { font-size: 10px; color: var(--muted); }
 #monthRecap .stat { display: inline-block; margin-right: 18px; }
+
+/* year recap + backup row */
+.yrrow { display: flex; align-items: center; gap: 12px; margin: 6px 0 12px; }
+.yrrow input[type="number"] { width: 110px; }

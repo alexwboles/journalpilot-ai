@@ -204,6 +204,8 @@ function renderInsights() {
     "<div class='stat'><strong>" + JP.currentStreak(entries) + "</strong><span>current streak</span></div>";
   renderMoodTrend();
   renderMonthRecap();
+  renderMoodWords();
+  renderYearRecap();
   renderCalendar();
 }
 
@@ -235,6 +237,40 @@ function renderMonthRecap() {
 }
 
 const MONTH_LABELS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+let recapYear = new Date().getFullYear();
+
+// Do you write more on good days? Average words per entry by mood.
+function renderMoodWords() {
+  const rows = JP.wordsByMood(entries).filter(function (r) { return r.entries > 0; });
+  const box = el("moodWords");
+  if (!rows.length) { box.innerHTML = '<p class="muted">Write a few entries to see this.</p>'; return; }
+  const max = Math.max.apply(null, rows.map(function (r) { return r.avgWords; }).concat([1]));
+  box.innerHTML = rows.map(function (r) {
+    const w = Math.round((r.avgWords / max) * 100);
+    return '<div class="mrow"><span class="mlabel"><span class="mdot" style="background:' + JP.MOOD_COLORS[r.mood] + '"></span> ' + JP.MOOD_LABELS[r.mood] +
+      '</span><div class="mbar"><div class="mfill" style="width:' + w + '%;background:' + JP.MOOD_COLORS[r.mood] + '"></div></div>' +
+      '<span class="mcount">' + r.avgWords + " avg · " + r.entries + "</span></div>";
+  }).join("") + '<p class="muted small">Average words per entry, by mood.</p>';
+}
+
+function renderYearRecap() {
+  const r = JP.yearlyRecap(entries, recapYear);
+  const box = el("yearRecap");
+  el("recapYear").value = recapYear;
+  if (!r.entries) {
+    box.innerHTML = '<p class="muted">No entries in ' + recapYear + " yet.</p>";
+    return;
+  }
+  const tags = r.topTags.map(function (t) { return "#" + esc(t.tag); }).join(" ");
+  const monthName = r.bestMonth ? MONTH_LABELS[parseInt(r.bestMonth.slice(5, 7), 10) - 1] : "";
+  box.innerHTML = '<div class="stat"><strong>' + r.entries + "</strong><span>entries</span></div>" +
+    '<div class="stat"><strong>' + r.words.toLocaleString() + "</strong><span>words</span></div>" +
+    '<div class="stat"><strong>' + r.monthsWritten + "/12</strong><span>months written</span></div>" +
+    (r.dominantMood ? '<div class="stat"><strong>' + JP.MOOD_EMOJI[r.dominantMood] + "</strong><span>top mood</span></div>" : "") +
+    (r.bestMonth ? '<div class="stat"><strong>' + monthName + "</strong><span>best month (" + r.bestMonthEntries + ")</span></div>" : "") +
+    '<div class="stat"><strong>' + r.longestStreak + "</strong><span>longest streak</span></div>" +
+    (tags ? '<p class="muted small">Top tags: ' + tags + "</p>" : "");
+}
 
 function renderCalendar() {
   const days = JP.monthDays(entries, calYear, calMonth);
@@ -310,6 +346,43 @@ function init() {
   el("calNext").onclick = function () {
     calMonth++; if (calMonth > 12) { calMonth = 1; calYear++; }
     renderMonthRecap(); renderCalendar();
+  };
+  el("recapYear").onchange = function () {
+    const y = parseInt(el("recapYear").value, 10);
+    if (y >= 2000 && y <= 2100) recapYear = y;
+    renderYearRecap();
+  };
+  el("backupBtn").onclick = function () {
+    if (!entries.length) { alert("No entries to back up yet."); return; }
+    const blob = new Blob([JP.exportBackup(entries, wordGoal)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "journal-backup-" + JP.todayISO() + ".json";
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+  };
+  el("restoreBtn").onclick = function () { el("restoreFile").click(); };
+  el("restoreFile").onchange = function () {
+    const f = el("restoreFile").files[0];
+    if (!f) return;
+    const rd = new FileReader();
+    rd.onload = function () {
+      try {
+        const res = JP.importBackup(rd.result);
+        if (!confirm("Restore " + res.entries.length + " entries from this backup? This replaces your current journal.")) {
+          el("restoreFile").value = ""; return;
+        }
+        entries = res.entries;
+        if (res.wordGoal) {
+          wordGoal = res.wordGoal;
+          el("wordGoal").value = wordGoal;
+          try { localStorage.setItem(GOAL_KEY, String(wordGoal)); } catch (e) {}
+        }
+        refresh();
+        el("restoreFile").value = "";
+      } catch (err) { alert("Couldn't restore: " + err.message); }
+    };
+    rd.readAsText(f);
   };
   setTab("today");
 }

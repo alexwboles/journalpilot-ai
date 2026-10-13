@@ -98,6 +98,18 @@
     <div id="moodTrend"></div>
     <h3>Month in review</h3>
     <div id="monthRecap"></div>
+    <h3>Mood × words</h3>
+    <div id="moodWords"></div>
+    <h3>Year in review</h3>
+    <div class="yrrow"><label>Year <input type="number" id="recapYear" min="2000" max="2100"></label></div>
+    <div id="yearRecap"></div>
+    <h3>Backup</h3>
+    <div class="yrrow">
+      <button class="ghost" id="backupBtn">Download backup (JSON)</button>
+      <button class="ghost" id="restoreBtn">Restore backup</button>
+      <input type="file" id="restoreFile" accept="application/json,.json" style="display:none" aria-label="Restore backup file">
+    </div>
+    <p class="muted small">The backup holds every entry plus your word goal — keep it somewhere safe. Restoring replaces the journal in this browser.</p>
     <h3>Calendar</h3>
     <div class="calnav">
       <button class="ghost" id="calPrev" aria-label="Previous month">←</button>
