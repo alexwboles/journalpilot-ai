@@ -400,8 +400,28 @@ function entriesToMarkdown(entries, opts) {
   return lines.join("\n").trim() + "\n";
 }
 
+function relativeDay(dateISO, refISO) {
+  const t = todayISO();
+  const ref = refISO || t;
+  const d1 = new Date(ref.slice(0, 4), ref.slice(5, 7) - 1, ref.slice(8, 10));
+  const d2 = new Date(dateISO.slice(0, 4), dateISO.slice(5, 7) - 1, dateISO.slice(8, 10));
+  const days = Math.round((d1 - d2) / 864e5);
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 7) return days + " days ago";
+  if (days < 30) return Math.floor(days / 7) + " wk ago";
+  if (days < 365) return Math.floor(days / 30) + " mo ago";
+  return Math.floor(days / 365) + " yr ago";
+}
+
+function prettyDate(dateISO) {
+  const d = new Date(dateISO.slice(0, 4), dateISO.slice(5, 7) - 1, dateISO.slice(8, 10));
+  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+}
+
 const api = {
   MOODS: MOODS, MOOD_LABELS: MOOD_LABELS, MOOD_EMOJI: MOOD_EMOJI, MOOD_COLORS: MOOD_COLORS,
+  relativeDay: relativeDay, prettyDate: prettyDate,
   MOOD_SCORES: MOOD_SCORES,
   loadEntries: loadEntries, persistEntries: persistEntries,
   todayISO: todayISO, addDaysISO: addDaysISO, weekStartISO: weekStartISO,

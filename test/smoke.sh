@@ -381,3 +381,20 @@ grep -q 'id="yearRecap"' index.html && grep -q 'id="moodWords"' index.html \
 pass "UI: year recap, mood-words, backup/restore wired"
 
 echo "All smoke tests passed."
+
+# redesign sweep: dateline masthead + relative day labels
+node -e "
+var fs = require('fs'), a = fs.readFileSync('./js/app.js', 'utf8');
+['dateline', 'relday', 'relativeDay', 'prettyDate'].forEach(function (s) {
+  if (a.indexOf(s) < 0) { console.error('app missing ' + s); process.exit(1); }
+});
+var c = fs.readFileSync('./css/style.css', 'utf8');
+['.dateline', '.relday'].forEach(function (s) {
+  if (c.indexOf(s) < 0) { console.error('css missing ' + s); process.exit(1); }
+});
+var JP = require('./js/logic.js');
+if (JP.relativeDay(JP.todayISO()) !== 'today') throw new Error('today');
+if (JP.relativeDay(JP.addDaysISO(JP.todayISO(), -1)) !== 'yesterday') throw new Error('yesterday');
+if (!/^[A-Z][a-z]{2},/.test(JP.prettyDate(JP.todayISO()))) throw new Error('prettyDate');
+console.log('OK');" || { echo "FAIL: redesign checks"; exit 1; }
+echo "PASS: dateline masthead + relative day labels"

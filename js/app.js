@@ -65,7 +65,14 @@ function renderToday() {
   const existing = JP.getEntry(entries, date);
   const isToday = date === JP.todayISO();
 
-  el("todayTitle").textContent = isToday ? "Today's entry" : "Entry — " + date;
+  // Dateline masthead: "Tuesday, October 13 · Day 287 of 2026".
+  var dParts = date.split("-").map(Number);
+  var dObj = new Date(dParts[0], dParts[1] - 1, dParts[2]);
+  var dayOfYear = Math.floor((dObj - new Date(dObj.getFullYear(), 0, 0)) / 864e5);
+  var dateline = dObj.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }) +
+    " · Day " + dayOfYear + " of " + dObj.getFullYear();
+  el("todayTitle").innerHTML = '<span class="dateline">' + esc(dateline) + "</span>" +
+    '<span class="dateline-sub">' + (isToday ? "Today's entry" : "Past entry") + "</span>";
   el("promptCat").textContent = PR.CATEGORY_LABELS[prompt.category];
   el("promptText").textContent = "“" + prompt.text + "”";
   el("promptText").dataset.cat = prompt.category;
@@ -98,7 +105,7 @@ function renderOnThisDay(date) {
   box.innerHTML = past.map(function (e) {
     const yrs = parseInt(date.slice(0, 4), 10) - parseInt(e.date.slice(0, 4), 10);
     return '<div class="card otd-card" data-date="' + e.date + '">' +
-      '<div class="entry-head"><strong>' + e.date + "</strong>" +
+      '<div class="entry-head"><strong>' + esc(JP.prettyDate(e.date)) + '</strong>' +
       '<span class="pill">' + yrs + (yrs === 1 ? " year" : " years") + " ago</span>" +
       '<span class="moodtag"><span class="mdot" style="background:' + JP.MOOD_COLORS[e.mood] + '"></span> ' + JP.MOOD_LABELS[e.mood] + "</span></div>" +
       '<div class="entry-text">' + esc(e.text.length > 200 ? e.text.slice(0, 200) + "…" : e.text) + "</div>" +
@@ -176,7 +183,8 @@ function renderEntries() {
   }
   box.innerHTML = list.map(function (e) {
     return '<div class="card entry-card" data-date="' + e.date + '">' +
-      '<div class="entry-head"><strong>' + e.date + "</strong>" +
+      '<div class="entry-head"><strong>' + esc(JP.prettyDate(e.date)) + '</strong>' +
+      '<span class="relday">' + esc(JP.relativeDay(e.date)) + "</span>" +
       '<span class="moodtag"><span class="mdot" style="background:' + JP.MOOD_COLORS[e.mood] + '"></span> ' + JP.MOOD_LABELS[e.mood] + "</span>" +
       '<span class="pill">' + esc(PR.CATEGORY_LABELS[e.prompt.category] || e.prompt.category) + "</span></div>" +
       '<div class="entry-prompt">' + esc(e.prompt.text) + "</div>" +

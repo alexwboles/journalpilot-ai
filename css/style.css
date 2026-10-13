@@ -266,3 +266,21 @@ footer { text-align: center; padding: 28px 20px 34px; border-top: 1px solid var(
 /* year recap + backup row */
 .yrrow { display: flex; align-items: center; gap: 12px; margin: 6px 0 12px; }
 .yrrow input[type="number"] { width: 110px; }
+
+/* ---------- 2026 redesign: dateline masthead + relative day labels ---------- */
+.dateline {
+  display: block;
+  font-family: var(--serif); font-size: 30px; font-weight: 600; letter-spacing: -.3px;
+  color: var(--ink);
+}
+.dateline-sub {
+  display: block;
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .14em; color: var(--terra);
+  margin-top: 6px;
+}
+.relday {
+  font-size: 12px; font-weight: 600; color: var(--muted);
+  background: var(--paper-deep); padding: 2px 9px; white-space: nowrap;
+}
+.entry-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
