@@ -256,6 +256,9 @@ grep -q 'onThisDay\|goalProgress\|monthDays\|entriesToMarkdown\|extractTags' js/
 pass "app.js wires goal/tags/calendar/export/on-this-day"
 grep -q 'moodTrend\|monthlyRecap' js/app.js || fail "app.js missing trend/recap wiring"
 pass "app.js wires moodTrend + monthlyRecap"
+grep -q 'entryDate").onchange' js/app.js || fail "app.js missing #entryDate onchange (dead date input)"
+grep -q 'querySelectorAll(".cal-d")' js/app.js || fail "app.js binds only entry-days in calendar"
+pass "app.js wires #entryDate change + all calendar days"
 
 # 22: mood trend — weekly averages
 node -e "

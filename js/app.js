@@ -297,7 +297,7 @@ function renderCalendar() {
       '<span class="cal-n">' + num + "</span>" + dot + "</button>";
   }).join("");
   el("calGrid").innerHTML = head + cells;
-  el("calGrid").querySelectorAll(".cal-d.has").forEach(function (b) {
+  el("calGrid").querySelectorAll(".cal-d").forEach(function (b) {
     b.onclick = function () { viewingDate = b.dataset.date; shuffleSalt = 0; setTab("today"); };
   });
 }
@@ -322,6 +322,10 @@ function init() {
   el("prevDay").onclick = function () { viewingDate = JP.addDaysISO(viewingDate, -1); shuffleSalt = 0; renderToday(); };
   el("nextDay").onclick = function () { viewingDate = JP.addDaysISO(viewingDate, 1); shuffleSalt = 0; renderToday(); };
   el("todayBtn").onclick = function () { viewingDate = JP.todayISO(); shuffleSalt = 0; renderToday(); };
+  el("entryDate").onchange = function () {
+    const v = el("entryDate").value;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) { viewingDate = v; shuffleSalt = 0; renderToday(); }
+  };
   el("searchBox").oninput = renderEntries;
   // Autosize + word count
   el("entryText").oninput = function () {
